@@ -1,8 +1,18 @@
 # Base image
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
+
+# ENV for poetry https://python-poetry.org/docs/configuration/#using-environment-variables
+# make poetry create the virtual environment in the project's root, it gets named `.venv`
+# and do not ask any interactive question
+ENV POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_IN_PROJECT=false \
+    POETRY_NO_INTERACTION=1
+
+# Prepend poetry and venv to path
+ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -11,17 +21,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN curl -sSL https://install.python-poetry.org | python -
 
 # Copy project files
-COPY pyproject.toml poetry.lock ./
-COPY backend backend/
-COPY ai ai/
+COPY pyproject.toml poetry.lock README.md ./
+COPY api api/
+COPY blog_management_system blog_management_system/
 COPY cli cli/
 
 # Install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+RUN poetry install 
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -31,4 +40,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 
 # Run the application
-CMD ["poetry", "run", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"] 
+CMD ["poetry", "run", "uvicorn", "api.app.main:app", "--host", "0.0.0.0", "--port", "8000"] 
