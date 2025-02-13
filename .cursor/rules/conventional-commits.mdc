@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+---
+ ---
+description: Rules for writing conventional commit messages
+globs: .git/COMMIT_EDITMSG
+---
+# Conventional Commits
+
+Rules for ensuring commit messages follow the conventional commits format.
+
+<rule>
+name: conventional_commits
+description: Standards for writing commit messages using conventional commits format
+filters:
+  # Match git commit message files
+  - type: file_path
+    pattern: "\\.git/COMMIT_EDITMSG$"
+  # Match commit message content
+  - type: content
+    pattern: "^[^#].*"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "^(?!feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(?:\\(.*\\))?:\\s.*"
+        message: "Commit message must start with a valid type (feat, fix, docs, etc.)"
+      - pattern: "^.{73,}"
+        message: "First line of commit message must not exceed 72 characters"
+
+  - type: suggest
+    message: |
+      Commit messages must follow the conventional commits format:
+
+      1. Format: <type>(<scope>): <description>
+         ```
+         feat(auth): add JWT authentication
+         fix(api): handle null responses
+         docs(readme): update installation steps
+         ```
+
+      2. Valid types:
+         - feat: New feature
+         - fix: Bug fix
+         - docs: Documentation only
+         - style: Code style changes
+         - refactor: Code refactoring
+         - test: Adding/updating tests
+         - chore: Maintenance tasks
+         - perf: Performance improvements
+         - ci: CI configuration
+         - build: Build system changes
+         - revert: Revert previous commit
+
+      3. Guidelines:
+         - Use imperative mood ("add" not "added")
+         - Don't capitalize first letter
+         - No period at the end
+         - Keep first line under 72 characters
+         - Add detailed description in body if needed
+
+examples:
+  - input: |
+      # Bad commit messages
+      updated stuff
+      Fixed bug
+      feat: Added new feature.
+
+      # Good commit messages
+      feat(auth): add JWT authentication
+      fix(api): handle null responses
+      docs: update installation guide
+    output: "Valid conventional commit message"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "blog-management-system"
+version = "0.1.0"
+description = "AI-powered blog content generation and management system"
+authors = ["Gary Gause <gary@gause.dev>"]
+packages = [
+    { include = "blog_management_system" }
+]
+readme = "README.md"
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain = "^0.3.18"
+alembic = "^1.14.1"
+python-jose = "^3.3.0"
+fastapi = "^0.115.8"
+sqlalchemy = "^2.0.38"
+python-multipart = "^0.0.20"
+click = "^8.1.8"
+uvicorn = "^0.34.0"
+langgraph = "^0.2.72"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+black = "^23.9"
+isort = "^5.12"
+flake8 = "^6.1"
+mypy = "^1.5"
+pytest-cov = "^4.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3 

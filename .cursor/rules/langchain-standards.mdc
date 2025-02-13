@@ -1,0 +1,161 @@
+---
+description: 
+globs: 
+---
+ ---
+description: Rules for ensuring code follows current LangChain standards and best practices
+globs: "*.{py,ipynb}"
+---
+# LangChain Standards
+
+Rules for ensuring code follows current LangChain standards and best practices.
+
+<rule>
+name: langchain_imports
+description: Enforce using the new modular imports from langchain packages
+filters:
+  - type: content
+    pattern: "from langchain\\."
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "from langchain\\.(?!core)"
+        message: "Use modular imports from langchain packages. For example:
+                 - from langchain_core.* for core functionality
+                 - from langchain_community.* for community integrations
+                 - from langchain_openai.* for OpenAI specific code"
+
+  - type: suggest
+    message: |
+      Update imports to use the modular packages:
+
+      Old imports:
+      ```python
+      from langchain.llms import OpenAI
+      from langchain.chat_models import ChatOpenAI
+      from langchain.agents import Tool
+      ```
+
+      New imports:
+      ```python
+      from langchain_openai import OpenAI, ChatOpenAI
+      from langchain_core.tools import BaseTool
+      from langchain_core.prompts import ChatPromptTemplate
+      from langchain_core.output_parsers import StrOutputParser
+      ```
+
+examples:
+  - input: |
+      from langchain.llms import OpenAI
+      from langchain.chat_models import ChatOpenAI
+    output: |
+      from langchain_openai import OpenAI, ChatOpenAI
+
+  - input: |
+      from langchain.agents import Tool
+      from langchain.chains import LLMChain
+    output: |
+      from langchain_core.tools import BaseTool
+      from langchain_core.chains import Chain
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
+
+<rule>
+name: langchain_chain_composition
+description: Enforce using LCEL for chain composition
+filters:
+  - type: content
+    pattern: "LLMChain|SequentialChain|SimpleSequentialChain"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "LLMChain\\(.*\\)"
+        message: "Use LCEL pipe syntax for chain composition instead of LLMChain"
+      - pattern: "SequentialChain\\(.*\\)"
+        message: "Use LCEL pipe syntax for chain composition instead of SequentialChain"
+
+  - type: suggest
+    message: |
+      Use LCEL (LangChain Expression Language) pipe syntax for chain composition:
+
+      Old style:
+      ```python
+      chain = LLMChain(llm=llm, prompt=prompt)
+      ```
+
+      New style:
+      ```python
+      chain = prompt | llm | output_parser
+      ```
+
+      For sequential chains:
+      ```python
+      chain = first_prompt | llm | parser | second_prompt | llm | final_parser
+      ```
+
+examples:
+  - input: |
+      chain = LLMChain(llm=llm, prompt=prompt)
+    output: |
+      chain = prompt | llm | output_parser
+
+  - input: |
+      chain = SimpleSequentialChain(chains=[chain1, chain2])
+    output: |
+      chain = chain1 | chain2
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
+
+<rule>
+name: langchain_agents
+description: Enforce using LangGraph for agent workflows
+filters:
+  - type: content
+    pattern: "AgentExecutor|ZeroShotAgent|ReActAgent"
+
+actions:
+  - type: suggest
+    message: |
+      Consider using LangGraph for agent workflows instead of traditional agents:
+
+      ```python
+      from langgraph.graph import StateGraph, Graph
+      
+      # Define state schema
+      class WorkflowState(TypedDict):
+          input: str
+          output: Optional[str]
+      
+      # Create workflow
+      workflow = StateGraph(WorkflowState)
+      
+      # Add nodes
+      workflow.add_node("agent", YourAgent())
+      
+      # Add edges with conditions
+      workflow.add_edge(
+          "agent",
+          "next_step",
+          condition=lambda state: state.get("output") is not None
+      )
+      ```
+
+examples:
+  - input: |
+      agent = AgentExecutor(agent=agent, tools=tools)
+    output: |
+      workflow = StateGraph(WorkflowState)
+      workflow.add_node("agent", agent)
+
+metadata:
+  priority: medium
+  version: 1.0
+</rule>
